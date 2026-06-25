@@ -1,0 +1,149 @@
+# 🚀 Guía para publicar "Gastos compartidos"
+
+Esta guía te lleva de cero a tener la app funcionando en internet, usable desde el celular de los dos. No hace falta saber programar — solo seguir los pasos. Te va a llevar entre 20 y 30 minutos.
+
+**Resumen del proceso:**
+1. Crear proyecto en Firebase (la base de datos, gratis)
+2. Conectar el código con tu Firebase
+3. Subir el código a GitHub
+4. Publicar en Vercel (gratis)
+5. Crear tus dos usuarios
+
+---
+
+## Paso 1 — Crear proyecto en Firebase
+
+1. Andá a **https://console.firebase.google.com** e iniciá sesión con tu cuenta de Google.
+2. Click en **"Crear un proyecto"**.
+3. Ponele un nombre, por ejemplo `gastos-pareja`. Click en **Continuar**.
+4. Te va a preguntar por Google Analytics — podés **desactivarlo** (no lo necesitás). Click en **Crear proyecto**.
+5. Esperá unos segundos hasta que diga "Tu nuevo proyecto está listo".
+
+### 1.1 — Activar Authentication (login)
+
+1. En el menú izquierdo, andá a **Compilación → Authentication**.
+2. Click en **Comenzar**.
+3. Elegí el proveedor **Correo electrónico/contraseña**, activalo (toggle verde) y guardá.
+
+### 1.2 — Activar Firestore (la base de datos)
+
+1. En el menú izquierdo, andá a **Compilación → Firestore Database**.
+2. Click en **Crear base de datos**.
+3. Elegí la ubicación más cercana (para Argentina: `southamerica-east1` — São Paulo).
+4. Elegí **Iniciar en modo de producción** y click en **Crear**.
+
+### 1.3 — Configurar las reglas de seguridad
+
+1. Dentro de Firestore Database, andá a la pestaña **Reglas**.
+2. Borrá todo el contenido y pegá esto:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /gastos/{gastoId} {
+      allow read, write: if request.auth != null;
+    }
+    match /ingresos/{ingresoId} {
+      allow read, write: if request.auth != null;
+    }
+    match /config/{configId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+3. Click en **Publicar**.
+
+Esto es lo que hace tu app **privada**: solo alguien que inició sesión (vos o tu pareja) puede leer o escribir datos. Nadie más en internet puede acceder.
+
+### 1.4 — Obtener las credenciales de configuración
+
+1. Click en el ⚙️ (ícono de engranaje) arriba a la izquierda → **Configuración del proyecto**.
+2. Bajá hasta **"Tus apps"** y click en el ícono **</>** (Web).
+3. Ponele un apodo, por ejemplo `gastos-web`. **No** marques "Configurar Firebase Hosting". Click en **Registrar app**.
+4. Vas a ver un bloque de código con un objeto `firebaseConfig`. Copiá esos valores — los vas a necesitar en el paso 2.
+
+```js
+const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "gastos-pareja-xxxx.firebaseapp.com",
+  projectId: "gastos-pareja-xxxx",
+  storageBucket: "gastos-pareja-xxxx.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+};
+```
+
+---
+
+## Paso 2 — Conectar el código con tu Firebase
+
+1. Abrí el archivo **`src/firebase.js`** que te compartí.
+2. Reemplazá los valores `"REEMPLAZAR"` con los datos que copiaste en el paso 1.4. Debería quedar así (con tus valores reales):
+
+```js
+const firebaseConfig = {
+  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXX",
+  authDomain: "gastos-pareja-xxxx.firebaseapp.com",
+  projectId: "gastos-pareja-xxxx",
+  storageBucket: "gastos-pareja-xxxx.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef123456",
+};
+```
+
+3. Guardá el archivo.
+
+---
+
+## Paso 3 — Subir el código a GitHub
+
+1. Andá a **https://github.com** y creá una cuenta si no tenés.
+2. Click en **New repository** (botón verde).
+3. Nombre: `gastos-pareja`. Dejalo **privado** (Private). Click en **Create repository**.
+4. GitHub te va a mostrar instrucciones — la forma más fácil sin usar la terminal:
+   - Click en **uploading an existing file**.
+   - Arrastrá **todos los archivos y carpetas** de la carpeta `gastos-app` que te compartí (incluyendo `src/`, `public/`, `package.json`, etc.) a la zona de carga.
+   - Click en **Commit changes**.
+
+---
+
+## Paso 4 — Publicar en Vercel
+
+1. Andá a **https://vercel.com** y creá una cuenta — elegí **"Continue with GitHub"** para conectarla directamente.
+2. Click en **Add New → Project**.
+3. Buscá el repositorio `gastos-pareja` que acabás de subir y click en **Import**.
+4. Vercel detecta automáticamente que es una app de React (Create React App). No hace falta tocar nada más.
+5. Click en **Deploy**.
+6. Esperá 1-2 minutos. Cuando termine, te va a dar una URL tipo `https://gastos-pareja.vercel.app` — **esa es tu app, ya pública y funcionando**.
+
+---
+
+## Paso 5 — Crear tus dos usuarios
+
+1. Abrí la URL que te dio Vercel desde tu celular o computadora.
+2. Click en **"¿Primera vez? Creá una cuenta"**.
+3. Completá tu nombre, email y una contraseña. Click en **Crear cuenta**.
+4. Decile a tu pareja que abra el mismo link y haga lo mismo con sus propios datos.
+5. ¡Listo! Ambos ya pueden cargar gastos, ingresos y ver el balance — todo se sincroniza automáticamente entre los dos.
+
+---
+
+## ❓ Preguntas frecuentes
+
+**¿Es realmente privada?**
+Sí. Las reglas de Firestore que configuraste en el paso 1.3 exigen que cualquiera que quiera leer o escribir datos esté autenticado (haya iniciado sesión). Nadie sin cuenta puede ver nada, y solo ustedes dos van a tener cuenta.
+
+**¿Cuánto cuesta?**
+Firebase y Vercel tienen planes gratuitos (capa "Spark" y "Hobby" respectivamente) más que suficientes para uso personal de dos personas. No vas a pagar nada con este volumen de uso.
+
+**¿Puedo agregar el acceso directo en mi celular como si fuera una app?**
+Sí. Abrí la URL en Safari (iPhone) o Chrome (Android), tocá compartir/menú → **"Agregar a pantalla de inicio"**. Va a quedar como un ícono más, sin barra de navegador.
+
+**Hice cambios en el código, ¿cómo actualizo la app publicada?**
+Subí los archivos nuevos a GitHub (mismo repositorio, sobrescribiendo los que cambiaron) — Vercel detecta el cambio y vuelve a publicar automáticamente en 1-2 minutos.
+
+**Si alguno de los dos se olvida la contraseña, ¿cómo la recupera?**
+Por ahora no agregué "recuperar contraseña" para mantenerlo simple. Si querés, te agrego esa función — avisame.
